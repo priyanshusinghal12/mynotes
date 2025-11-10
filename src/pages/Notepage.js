@@ -24,23 +24,41 @@ const NotePage = () => {
 	}, [id]);
 
 	let createNote = async () => {
-		await fetch(`${API_URL}/notes`, {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ ...note, updated: new Date() }),
-		});
+		try {
+			const response = await fetch(`${API_URL}/notes`, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...note, updated: new Date() }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to create note");
+			}
+			return await response.json();
+		} catch (error) {
+			console.error("Error creating note:", error);
+			throw error;
+		}
 	};
 
 	let updateNote = async () => {
-		await fetch(`${API_URL}/notes/${id}`, {
-			method: "PUT",
-			headers: {
-				"Content-Type": "application/json",
-			},
-			body: JSON.stringify({ ...note, updated: new Date() }),
-		});
+		try {
+			const response = await fetch(`${API_URL}/notes/${id}`, {
+				method: "PUT",
+				headers: {
+					"Content-Type": "application/json",
+				},
+				body: JSON.stringify({ ...note, updated: new Date() }),
+			});
+			if (!response.ok) {
+				throw new Error("Failed to update note");
+			}
+			return await response.json();
+		} catch (error) {
+			console.error("Error updating note:", error);
+			throw error;
+		}
 	};
 
 	let deleteNote = async () => {
@@ -52,16 +70,24 @@ const NotePage = () => {
 	};
 
 	let handleSubmit = async () => {
-		if (id !== "new" && !note.body) {
-			await deleteNote();
-		} else if (id !== "new") {
-			await updateNote();
-			navigate("/");
-		} else if (id === "new" && note.body) {
-			await createNote();
-			navigate("/");
-		} else {
-			navigate("/");
+		try {
+			if (id !== "new" && !note?.body?.trim()) {
+				await deleteNote();
+			} else if (id !== "new") {
+				await updateNote();
+				navigate("/");
+			} else if (id === "new") {
+				// Create note even if body is empty (allow empty notes)
+				if (note?.body?.trim() || note?.body === "") {
+					await createNote();
+				}
+				navigate("/");
+			} else {
+				navigate("/");
+			}
+		} catch (error) {
+			console.error("Error in handleSubmit:", error);
+			alert("Failed to save note. Please check console for details.");
 		}
 	};
 
