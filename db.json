@@ -1,0 +1,14 @@
+{
+  "notes": [
+    {
+      "id": "3",
+      "body": "Gym \nDiet \nWalk\nLeetcode",
+      "updated": "2025-11-10T17:24:02.442Z"
+    },
+    {
+      "id": "c42c",
+      "body": "Hi, I have been looking into what is causing longer response times with our configurations. So what I have noticed is that, the first question takes the most ammount of time, it takes around 7 minutes, then the subequent quereis actually take 2-3 minutes. The main bottleneck is the reranker.\nThe first rerank of costs several minutes because the BGE cross-encoder is loaded fresh (model download/init).\nSubsequent queries are faster but still spend 1–2 minutes because we instantiate and run the cross-encoder on 20 documents per question every time; the reranker remains the main bottleneck.\nThis is really the main change from our vanilla implementation, changing the reranker but that is more accurate. BGE-reranker-v2-m3 is slower because it’s a full-sized multilingual transformer with much heavier computation and tokenization overhead — but it’s more accurate for Spanish because it was explicitly trained on multilingual relevance data. Comparing this to Flashrank (ms-marco-MiniLM-L-12-v2) MiniLM uses distilled layers (a compressed version of BERT), which means inference per query-document pair takes milliseconds. Now the approaches we can try is\nHere is the flow:\nQuestion → Embedding\nRequest handled, language detected, query embedded with Ollama.\nRetrieval\nChromaDB returns top 20 chunks\nRerank\nThe most time consuming process, this takes around 4-5 minutes on the first query, and then it takes 1-1.5 minutes on subsequent queries.\nAnswer Generation\nLLM generates answer, slower for first query (1.5-2 mins), for subsequqent quereis its like 20-30 seconds.\nA solution for the first query is make the BGE re ranker load/ping it sort of when we start ingesting the files. This still would mean 2-3 minutes for each query",
+      "updated": "2025-11-10T17:36:19.065Z"
+    }
+  ]
+}
