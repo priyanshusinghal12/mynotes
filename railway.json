@@ -4,7 +4,7 @@
 		"builder": "NIXPACKS"
 	},
 	"deploy": {
-		"startCommand": "npx json-server db.json --port $PORT --host 0.0.0.0",
+		"startCommand": "npx json-server db.json --port $PORT --host 0.0.0.0 --cors",
 		"restartPolicyType": "ON_FAILURE",
 		"restartPolicyMaxRetries": 10
 	}
